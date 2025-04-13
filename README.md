@@ -22,6 +22,19 @@ A Kubernetes cluster consists of two types of resources:
 - The Deployment instructs Kubernetes how to create and update instances of your application.
 - Once you've created a Deployment, the Kubernetes control plane schedules the application instances included in that Deployment to run on individual Nodes in the cluster.
 
+```
+kubectl create deployment hello-node --image=registry.k8s.io/e2e-test-images/agnhost:2.39 -- /agnhost netexec --http-port=8080
+
+kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
+
+
+kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+hello-node            1/1     1            1           13d
+kubernetes-bootcamp   1/1     1            1           13d
+
+```
+
 ## Deployment Controller
 
 - Once the application instances are created, a Kubernetes Deployment controller continuously monitors those instances.
@@ -37,6 +50,13 @@ Every Kubernetes Node runs at least:
 
 - Kubelet, a process responsible for communication between the Kubernetes control plane and the Node; it manages the Pods and the containers running on a machine.
 - A container runtime (like Docker) responsible for pulling the container image from a registry, unpacking the container, and running the application.
+
+```
+kubectl get nodes
+NAME       STATUS   ROLES           AGE     VERSION
+minikube   Ready    control-plane   7h37m   v1.32.0
+```
+
 
 ## Kubelet
 
@@ -56,23 +76,31 @@ A Pod is a Kubernetes abstraction that represents a group of one or more applica
 
 - Pods that are running inside Kubernetes are running on a private, isolated network. By default they are visible from other pods and services within the same Kubernetes cluster, but not outside that network.
 
+```
+kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+hello-node-c74958b5d-bdrfb   1/1     Running   0          11m
+
+kubectl describe pods
+```
 
 ## Proxy
 
-The kubectl proxy command can create a proxy that will forward communications into the cluster-wide, private network. The proxy can be terminated by pressing control-C and won't show any output while it's running.
+- The `kubectl proxy` command can create a proxy that will forward communications into the cluster-wide, private network. The proxy can be terminated by pressing control-C and won't show any output while it's running.
+- You can see all those APIs hosted through the proxy endpoint. For example, we can query the version directly through the API using the curl command: `curl http://localhost:8001/version`
 
-You can see all those APIs hosted through the proxy endpoint. For example, we can query the version directly through the API using the curl command:
+Note: In order for the new Deployment to be accessible without using the proxy, a Service is required
 
-curl http://localhost:8001/version
+### Accessing Pod directly using Proxy
 
-In order for the new Deployment to be accessible without using the proxy, a Service is required
+- The API server will automatically create an endpoint for each pod, based on the pod name, that is also accessible through the proxy.
 
-The API server will automatically create an endpoint for each pod, based on the pod name, that is also accessible through the proxy.
-
-First we need to get the Pod name, and we'll store it in the environment variable POD_NAME.
+- First we need to get the Pod name, and we'll store it in the environment variable POD_NAME.
+```
 export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
 echo Name of the Pod: $POD_NAME
+```
 
 You can access the Pod through the proxied API, by running:
-curl http://localhost:8001/api/v1/namespaces/default/pods/$POD_NAME:8080/proxy/
+`curl http://localhost:8001/api/v1/namespaces/default/pods/$POD_NAME:8080/proxy/`
 
