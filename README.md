@@ -104,3 +104,74 @@ echo Name of the Pod: $POD_NAME
 You can access the Pod through the proxied API, by running:
 `curl http://localhost:8001/api/v1/namespaces/default/pods/$POD_NAME:8080/proxy/`
 
+## Services
+
+# Expose pod to public internet
+kubectl expose deployment hello-node --type=LoadBalancer --port=8080
+
+kubectl get services
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+hello-node   LoadBalancer   10.109.96.254   <pending>     8080:32167/TCP   3m15s
+kubernetes   ClusterIP      10.96.0.1       <none>        443/TCP          55m
+
+
+Note: For minikube, the external ip will be showing up as pending.
+
+minikube service hello-node
+|-----------|------------|-------------|----------------------------|
+| NAMESPACE |    NAME    | TARGET PORT |            URL             |
+|-----------|------------|-------------|----------------------------|
+| default   | hello-node |        8080 | http://192.168.166.2:32167 |
+|-----------|------------|-------------|----------------------------|
+Opening service default/hello-node in default browser...
+
+
+
+
+
+# kubectl CLI Reference
+
+minikube start --driver=none
+
+General Syntax:
+
+```
+kubectl <action> <resource>
+<action> -> create, describe, delete etc
+<resource> -> node, deployment, pod etc
+```
+
+Note: For any command, you can add a `--help` at the end to get more info on it.
+Ex:
+```kubectl get nodes --help```
+
+kubectl get events
+
+kubectl config view
+
+kubectl logs hello-node-c74958b5d-bdrfb
+
+
+
+## Addons
+
+```
+minikube addons list
+minikube addons enable metrics-server
+kubectl get pod,svc -n kube-system
+kubectl top pods
+minikube addons disable metrics-server
+```
+
+## Cleanup/Delete
+
+```
+kubectl delete service hello-node
+kubectl delete deployment hello-node
+minikube stop
+```
+
+## Optionally delete
+minikube delete
+
+
